@@ -12,14 +12,13 @@ library(scico)
 rm(list = ls(all.names = TRUE))
 gc()
 
-setwd("~/Library/CloudStorage/OneDrive-Chalmers/FairShareforSweden/RScripts")
 CountryAssumptions <- subset(read.xlsx("CountryAssumptions.xlsx", sheetIndex = 1, colIndex = 1:6), Country != "Sweden")
 NoCores <- detectCores() - 1
 CarbonBudget = data.frame(TempTarget = c(1.5,2),
                           BudgetGtCO2 = c(250, 800)-25) 
 
 #### Read data from Global Carbon Project and WorldBank ####
-DataWorldBank <- wb_data(c(GDP = "NY.GDP.MKTP.KD", GDPpc = "NY.GDP.PCAP.KD"), country = "all")
+DataWorldBank <- wb_data(c(GDP = "NY.GDP.MKTP.CD", GDPpc = "NY.GDP.PCAP.CD"), country = "all")
 colnames(DataWorldBank)[which(names(DataWorldBank) == "date")] <- "Year"
 colnames(DataWorldBank)[which(names(DataWorldBank) == "country")] <- "Country"
 DataWorldBank$Country[DataWorldBank$iso3c == "EGY"] <- "Egypt"
@@ -341,7 +340,9 @@ for (Country in CountryAssumptions$Country) {
     ShareinWorldEmissions2022MtCO2 = DataGlobalCarbonBudget$EmissionsMtCO2[DataGlobalCarbonBudget$Country == Country & DataGlobalCarbonBudget$Year == 2022] / DataGlobalCarbonBudget$EmissionsMtCO2[DataGlobalCarbonBudget$Country == "World" & DataGlobalCarbonBudget$Year == 2022],
     ShareinWorldEmissions19902022MtCO2 = sum(DataGlobalCarbonBudget$EmissionsMtCO2[DataGlobalCarbonBudget$Country == Country & DataGlobalCarbonBudget$Year >= 1990]) / sum(DataGlobalCarbonBudget$EmissionsMtCO2[DataGlobalCarbonBudget$Country == "World" & DataGlobalCarbonBudget$Year >= 1990]),
     ShareinWorldEmissions20232070MtCO2 = ifelse(Country == "World", sum(PlannedEmissions$EmissionsMtCO2),sum(PlannedEmissions$EmissionsMtCO2[PlannedEmissions$Country == Country])) / sum(PlannedEmissions$EmissionsMtCO2),
-    ShareinWorldEmissions19902070MtCO2 = (sum(DataGlobalCarbonBudget$EmissionsMtCO2[DataGlobalCarbonBudget$Country == Country & DataGlobalCarbonBudget$Year >= 1990]) + ifelse(Country == "World", sum(PlannedEmissions$EmissionsMtCO2),sum(PlannedEmissions$EmissionsMtCO2[PlannedEmissions$Country == Country]))) / (sum(DataGlobalCarbonBudget$EmissionsMtCO2[DataGlobalCarbonBudget$Country == "World" & DataGlobalCarbonBudget$Year >= 1990]) + sum(PlannedEmissions$EmissionsMtCO2))
+    ShareinWorldEmissions19902070MtCO2 = (sum(DataGlobalCarbonBudget$EmissionsMtCO2[DataGlobalCarbonBudget$Country == Country & DataGlobalCarbonBudget$Year >= 1990]) + ifelse(Country == "World", sum(PlannedEmissions$EmissionsMtCO2),sum(PlannedEmissions$EmissionsMtCO2[PlannedEmissions$Country == Country]))) / (sum(DataGlobalCarbonBudget$EmissionsMtCO2[DataGlobalCarbonBudget$Country == "World" & DataGlobalCarbonBudget$Year >= 1990]) + sum(PlannedEmissions$EmissionsMtCO2)),
+    GDP2021 = DataWorldBank$GDP[DataWorldBank$Country == Country & DataWorldBank$Year == 2021],
+    GDPpercapita2021 = DataWorldBank$GDPpc[DataWorldBank$Country == Country & DataWorldBank$Year == 2021]
   ))
 }
 
@@ -364,13 +365,26 @@ DataForZoomFigure <- subset(AdditionalCarbonAccountability, AllocationPrinciple 
 DataForZoomFigureLabels <- cbind(DataForZoomFigure, zoom = TRUE)
 ZoomLevel <- 22000
 DataForZoomFigureLabels$zoom <- ifelse(DataForZoomFigureLabels$CarbonDebt > -ZoomLevel & DataForZoomFigureLabels$CarbonDebt < ZoomLevel & DataForZoomFigureLabels$ExcessiveCarbonClaims > -ZoomLevel & DataForZoomFigureLabels$ExcessiveCarbonClaims < ZoomLevel, TRUE, FALSE)
+
+DataForZoomFigurePerCapita <- cbind(DataForZoomFigure, CarbonDebtPerCapita = DataForZoomFigure$CarbonDebt, ExcessiveCarbonClaimsPerCapita = DataForZoomFigure$ExcessiveCarbonClaims)
+for (Country in CountryAssumptions$Country) {
+  DataForZoomFigurePerCapita$CarbonDebtPerCapita[DataForZoomFigurePerCapita$Country == Country] <- DataForZoomFigurePerCapita$CarbonDebtPerCapita[DataForZoomFigurePerCapita$Country == Country] / mean(DataUNPopulation$Population[DataUNPopulation$Year >= 1990 & DataUNPopulation$Year <= 2022 & DataUNPopulation$Country == Country]) * 1e6
+  DataForZoomFigurePerCapita$ExcessiveCarbonClaimsPerCapita[DataForZoomFigurePerCapita$Country == Country] <- DataForZoomFigurePerCapita$ExcessiveCarbonClaimsPerCapita[DataForZoomFigurePerCapita$Country == Country] / mean(DataUNPopulation$Population[DataUNPopulation$Year >= 2023 & DataUNPopulation$Year <= 2070 & DataUNPopulation$Country == Country]) * 1e6
+}
+DataForZoomFigureLabelsPerCapita <- cbind(DataForZoomFigurePerCapita, zoom = TRUE)
+ZoomLevelPerCapita <- 150
+DataForZoomFigureLabelsPerCapita$zoom <- ifelse(DataForZoomFigureLabelsPerCapita$CarbonDebtPerCapita > -ZoomLevelPerCapita & DataForZoomFigureLabelsPerCapita$CarbonDebtPerCapita < ZoomLevelPerCapita & DataForZoomFigureLabelsPerCapita$ExcessiveCarbonClaimsPerCapita > -ZoomLevelPerCapita & DataForZoomFigureLabelsPerCapita$ExcessiveCarbonClaimsPerCapita < ZoomLevelPerCapita, TRUE, FALSE)
+
 DataForZoomFigure$EconomicDevelopment <- factor(DataForZoomFigure$EconomicDevelopment, levels = c("High", "Upper-middle", "Lower-middle", "Low", "Rest of world"), labels = c("High income", "Upper-middle income", "Lower-middle income", "Low income", "Rest of world"))
 DataForZoomFigureLabels$EconomicDevelopment <- factor(DataForZoomFigureLabels$EconomicDevelopment, levels = c("High", "Upper-middle", "Lower-middle", "Low", "Rest of world"), labels = c("High income", "Upper-middle income", "Lower-middle income", "Low income", "Rest of world"))
+DataForZoomFigurePerCapita$EconomicDevelopment <- factor(DataForZoomFigurePerCapita$EconomicDevelopment, levels = c("High", "Upper-middle", "Lower-middle", "Low", "Rest of world"), labels = c("High income", "Upper-middle income", "Lower-middle income", "Low income", "Rest of world"))
+DataForZoomFigureLabelsPerCapita$EconomicDevelopment <- factor(DataForZoomFigureLabelsPerCapita$EconomicDevelopment, levels = c("High", "Upper-middle", "Lower-middle", "Low", "Rest of world"), labels = c("High income", "Upper-middle income", "Lower-middle income", "Low income", "Rest of world"))
 
 CarbonDebtvsExcessiveClaims <- ggplot(mapping = aes(x = CarbonDebt/1000, y = ExcessiveCarbonClaims/1000, color = EconomicDevelopment, label = Country)) +#, alpha = Target, shape = Target)) +
+  geom_hline(data = subset(DataForZoomFigure, TempTarget == 1.5), mapping = aes(yintercept = 0), color = "gray", size = .5) +
+  geom_vline(data = subset(DataForZoomFigure, TempTarget == 1.5), mapping = aes(xintercept = 0), color = "gray", size = .5) +
   geom_point(data = subset(DataForZoomFigure, TempTarget == 1.5), size = .3) +
-  geom_text_repel(data = subset(DataForZoomFigureLabels, TempTarget == 1.5 & !(Country %in% c("Japan", "European Union", "Russia", "India", "China", "Rest of world"))), max.overlaps = 40, size = 1.7, segment.size = .3, box.padding = 0.15, min.segment.length = 0.01, show.legend = FALSE) +
-  geom_text_repel(data = subset(DataForZoomFigureLabels, TempTarget == 1.5 & Country %in% c("Japan", "European Union", "Russia", "India", "China", "Rest of world")), direction = "y", max.overlaps = 40, size = 1.7, segment.size = .3, box.padding = 0.15, min.segment.length = 0.01, show.legend = FALSE) +
+  geom_text_repel(data = subset(DataForZoomFigureLabels, TempTarget == 1.5), max.overlaps = 40, size = 1.7, segment.size = .3, box.padding = 0.15, min.segment.length = 0.01, show.legend = FALSE) +
   geom_text(size = 2.5, color = "black", data = data.frame(x = c(-22,-120), y = c(-22, -20), zoom = c(TRUE,FALSE), label = c("a)", "b)")),
             mapping = aes(x = x, y = y, label = label)) +
   facet_zoom(xlim = c(-ZoomLevel, ZoomLevel)/1000, ylim = c(-ZoomLevel,ZoomLevel)/1000, zoom.data = zoom, horizontal = TRUE) +
@@ -382,18 +396,41 @@ CarbonDebtvsExcessiveClaims <- ggplot(mapping = aes(x = CarbonDebt/1000, y = Exc
                                      legend.key.size = unit(1, "mm"),
                                      legend.background = element_blank())
 
-png(filename = "Figure 2 - CarbonDebtvsExcessiveClaims.png", width = 88*2, height = 88,  units = "mm", res = 500)
+png(filename = "Supplementary Figure 1 - CarbonDebtvsExcessiveClaims.png", width = 88*2, height = 88,  units = "mm", res = 500)
 print(CarbonDebtvsExcessiveClaims)
 dev.off()
 
-pdf(file = "Figure 2 - CarbonDebtvsExcessiveClaims.pdf", width = 88*2/25.4, height = 88/25.4)
-print(CarbonDebtvsExcessiveClaims)
+CarbonDebtvsExcessiveClaimsPerCapita <- ggplot(mapping = aes(x = CarbonDebtPerCapita, y = ExcessiveCarbonClaimsPerCapita, color = EconomicDevelopment, label = Country)) +#, alpha = Target, shape = Target)) +
+  geom_hline(data = subset(DataForZoomFigure, TempTarget == 1.5), mapping = aes(yintercept = 0), color = "gray", size = .5) +
+  geom_vline(data = subset(DataForZoomFigure, TempTarget == 1.5), mapping = aes(xintercept = 0), color = "gray", size = .5) +
+  geom_point(data = subset(DataForZoomFigurePerCapita, TempTarget == 1.5), size = .3) +
+  geom_text_repel(data = subset(DataForZoomFigureLabelsPerCapita, TempTarget == 1.5), max.overlaps = 40, size = 1.7, segment.size = .3, box.padding = 0.15, min.segment.length = 0.01, show.legend = FALSE) +
+  #geom_text_repel(data = subset(DataForZoomFigureLabelsPerCapita, TempTarget == 1.5 & Country %in% c("Japan", "European Union", "Russia", "India", "China", "Rest of world")), direction = "y", max.overlaps = 40, size = 1.7, segment.size = .3, box.padding = 0.15, min.segment.length = 0.01, show.legend = FALSE) +
+  geom_text(size = 2.5, color = "black", data = data.frame(x = c(-150,-200), y = c(-150, -150), zoom = c(TRUE,FALSE), label = c("a)", "b)")),
+            mapping = aes(x = x, y = y, label = label)) +
+  facet_zoom(xlim = c(-ZoomLevelPerCapita, ZoomLevelPerCapita), ylim = c(-ZoomLevelPerCapita,ZoomLevelPerCapita), zoom.data = zoom, horizontal = TRUE) +
+  scale_x_continuous(breaks = pretty) +
+  scale_y_continuous(breaks = pretty) +
+  scale_color_manual(values = c(scico(5, palette = "batlow")[1:4], "gray")) +
+  labs(x = expression(paste("Carbon debt per capita (t", CO[2],")")), y = expression(paste("Excessive carbon claims per capita (t", CO[2],")")), color = NULL) +
+  theme_light(base_size = 8) + theme(legend.position = c(0.535,0.1),
+                                     legend.key.size = unit(1, "mm"),
+                                     legend.background = element_blank())
+
+png(filename = "Figure 2 - CarbonDebtvsExcessiveClaimsPerCapita.png", width = 88*2, height = 88,  units = "mm", res = 500)
+print(CarbonDebtvsExcessiveClaimsPerCapita)
+dev.off()
+
+pdf(file = "Figure 2 - CarbonDebtvsExcessiveClaimsPerCapita.pdf", width = 88*2/25.4, height = 88/25.4)
+print(CarbonDebtvsExcessiveClaimsPerCapita)
 dev.off()
 
 CarbonDebtvsExcessiveClaims2C <- ggplot(mapping = aes(x = CarbonDebt/1000, y = ExcessiveCarbonClaims/1000, color = EconomicDevelopment, label = Country)) +#, alpha = Target, shape = Target)) +
+  geom_hline(data = subset(DataForZoomFigure, TempTarget == 2), mapping = aes(yintercept = 0), color = "gray", size = .5) +
+  geom_vline(data = subset(DataForZoomFigure, TempTarget == 2), mapping = aes(xintercept = 0), color = "gray", size = .5) +
   geom_point(data = subset(DataForZoomFigure, TempTarget == 2), size = .3) +
-  geom_text_repel(data = subset(DataForZoomFigureLabels, TempTarget == 2 & !(Country %in% c("Japan", "European Union", "Russia", "India", "China", "Rest of world"))), max.overlaps = 40, size = 1.7, segment.size = .3, box.padding = 0.15, min.segment.length = 0.01, show.legend = FALSE) +
-  geom_text_repel(data = subset(DataForZoomFigureLabels,  TempTarget == 2 & Country %in% c("Japan", "European Union", "Russia", "India", "China", "Rest of world")), direction = "y", max.overlaps = 40, size = 1.7, segment.size = .3, box.padding = 0.15, min.segment.length = 0.01, show.legend = FALSE) +
+  geom_text_repel(data = subset(DataForZoomFigureLabels, TempTarget == 2), max.overlaps = 40, size = 1.7, segment.size = .3, box.padding = 0.15, min.segment.length = 0.01, show.legend = FALSE) +
+  #geom_text_repel(data = subset(DataForZoomFigureLabels,  TempTarget == 2 & Country %in% c("Japan", "European Union", "Russia", "India", "China", "Rest of world")), direction = "y", max.overlaps = 40, size = 1.7, segment.size = .3, box.padding = 0.15, min.segment.length = 0.01, show.legend = FALSE) +
   geom_text(size = 2.5, color = "black", data = data.frame(x = c(-22,-120), y = c(-22, -120), zoom = c(TRUE,FALSE), label = c("a)", "b)")),
             mapping = aes(x = x, y = y, label = label)) +
   facet_zoom(xlim = c(-ZoomLevel, ZoomLevel)/1000, ylim = c(-ZoomLevel,ZoomLevel)/1000, zoom.data = zoom, horizontal = TRUE) +
@@ -406,14 +443,38 @@ CarbonDebtvsExcessiveClaims2C <- ggplot(mapping = aes(x = CarbonDebt/1000, y = E
                                      legend.key.size = unit(1, "mm"),
                                      legend.background = element_blank())
 
-png(filename = "Extended Data Figure 1 - CarbonDebtvsExcessiveClaims 2C.png", width = 88*2, height = 88,  units = "mm", res = 500)
+png(filename = "Supplementary Figure 3 - CarbonDebtvsExcessiveClaims 2C.png", width = 88*2, height = 88,  units = "mm", res = 500)
 print(CarbonDebtvsExcessiveClaims2C)
 dev.off()
 
+CarbonDebtvsExcessiveClaims2CPerCapita <- ggplot(mapping = aes(x = CarbonDebtPerCapita, y = ExcessiveCarbonClaimsPerCapita, color = EconomicDevelopment, label = Country)) +#, alpha = Target, shape = Target)) +
+  geom_hline(data = subset(DataForZoomFigure, TempTarget == 2), mapping = aes(yintercept = 0), color = "gray", size = .5) +
+  geom_vline(data = subset(DataForZoomFigure, TempTarget == 2), mapping = aes(xintercept = 0), color = "gray", size = .5) +
+  geom_point(data = subset(DataForZoomFigurePerCapita, TempTarget == 2), size = .3) +
+  geom_text_repel(data = subset(DataForZoomFigureLabelsPerCapita, TempTarget == 2), max.overlaps = 40, size = 1.7, segment.size = .3, box.padding = 0.15, min.segment.length = 0.01, show.legend = FALSE) +
+  #geom_text_repel(data = subset(DataForZoomFigureLabels,  TempTarget == 2 & Country %in% c("Japan", "European Union", "Russia", "India", "China", "Rest of world")), direction = "y", max.overlaps = 40, size = 1.7, segment.size = .3, box.padding = 0.15, min.segment.length = 0.01, show.legend = FALSE) +
+  geom_text(size = 2.5, color = "black", data = data.frame(x = c(-150,-150), y = c(-150, -150), zoom = c(TRUE,FALSE), label = c("a)", "b)")),
+            mapping = aes(x = x, y = y, label = label)) +
+  facet_zoom(xlim = c(-ZoomLevelPerCapita, ZoomLevelPerCapita), ylim = c(-ZoomLevelPerCapita,ZoomLevelPerCapita), zoom.data = zoom, horizontal = TRUE) +
+  scale_x_continuous(breaks = pretty) +
+  scale_y_continuous(breaks = pretty) +
+  scale_color_manual(values = c(scico(5, palette = "batlow")[1:4], "gray")) +
+  #scale_alpha_manual(values = c(1,0.4)) +
+  labs(x = expression(paste("Carbon debt per capita (t", CO[2],")")), y = expression(paste("Excessive carbon claims per capita (t", CO[2],")")), color = NULL) +
+  theme_light(base_size = 8) + theme(legend.position = c(0.535,0.1),
+                                     legend.key.size = unit(1, "mm"),
+                                     legend.background = element_blank())
+
+png(filename = "Supplementary Figure 2 - CarbonDebtvsExcessiveClaims 2C Per Capita.png", width = 88*2, height = 88,  units = "mm", res = 500)
+print(CarbonDebtvsExcessiveClaims2CPerCapita)
+dev.off()
+
 CarbonDebtvsExcessiveClaimsComparison <- ggplot(mapping = aes(x = CarbonDebt/1000, y = ExcessiveCarbonClaims/1000, color = EconomicDevelopment, label = Country, shape = as.character(TempTarget), alpha = as.character(TempTarget))) +
+  geom_hline(data = subset(DataForZoomFigure), mapping = aes(yintercept = 0), color = "gray", size = .5) +
+  geom_vline(data = subset(DataForZoomFigure), mapping = aes(xintercept = 0), color = "gray", size = .5) +
   geom_point(data = subset(DataForZoomFigure), size = .5) +
-  geom_text_repel(data = subset(DataForZoomFigureLabels, !(Country %in% c("Japan", "European Union", "Russia", "India", "China", "Rest of world"))), max.overlaps = 40, segment.size = .3, box.padding = 0.15, min.segment.length = 0.01, show.legend = FALSE, mapping = aes(size = as.character(TempTarget))) +
-  geom_text_repel(data = subset(DataForZoomFigureLabels, Country %in% c("Japan", "European Union", "Russia", "India", "China", "Rest of world")), direction = "y", max.overlaps = 40, segment.size = .3, box.padding = 0.15, min.segment.length = 0.01, show.legend = FALSE , mapping = aes(size = as.character(TempTarget))) +
+  geom_text_repel(data = DataForZoomFigureLabels, max.overlaps = 40, segment.size = .3, box.padding = 0.15, min.segment.length = 0.01, show.legend = FALSE, mapping = aes(size = as.character(TempTarget))) +
+  #geom_text_repel(data = subset(DataForZoomFigureLabels, Country %in% c("Japan", "European Union", "Russia", "India", "China", "Rest of world")), direction = "y", max.overlaps = 40, segment.size = .3, box.padding = 0.15, min.segment.length = 0.01, show.legend = FALSE , mapping = aes(size = as.character(TempTarget))) +
   geom_text(size = 2.5, color = "black", alpha = 1, data = data.frame(x = c(-22,-120), y = c(-22, -120), zoom = c(TRUE,FALSE), label = c("a)", "b)")),
             mapping = aes(x = x, y = y, label = label)) +
   facet_zoom(xlim = c(-ZoomLevel, ZoomLevel)/1000, ylim = c(-ZoomLevel,ZoomLevel)/1000, zoom.data = zoom, horizontal = TRUE) +
@@ -431,8 +492,35 @@ CarbonDebtvsExcessiveClaimsComparison <- ggplot(mapping = aes(x = CarbonDebt/100
                                      legend.box.margin = margin(0),
                                      legend.spacing = unit(0,"pt"))
 
-png(filename = "Extended Data Figure 2 - CarbonDebtvsExcessiveClaims Comparing 1.5C and 2C.png", width = 88*2, height = 88,  units = "mm", res = 500)
+png(filename = "Supplementary Figure 5 - CarbonDebtvsExcessiveClaims Comparing 1.5C and 2C.png", width = 88*2, height = 88,  units = "mm", res = 500)
 print(CarbonDebtvsExcessiveClaimsComparison)
+dev.off()
+
+CarbonDebtvsExcessiveClaimsComparisonPerCapita <- ggplot(mapping = aes(x = CarbonDebtPerCapita, y = ExcessiveCarbonClaimsPerCapita, color = EconomicDevelopment, label = Country, shape = as.character(TempTarget), alpha = as.character(TempTarget))) +
+  geom_hline(data = subset(DataForZoomFigure), mapping = aes(yintercept = 0), color = "gray", size = .5) +
+  geom_vline(data = subset(DataForZoomFigure), mapping = aes(xintercept = 0), color = "gray", size = .5) +
+  geom_point(data = subset(DataForZoomFigurePerCapita), size = .5) +
+  geom_text_repel(data = DataForZoomFigureLabelsPerCapita, max.overlaps = 40, segment.size = .3, box.padding = 0.15, min.segment.length = 0.01, show.legend = FALSE, mapping = aes(size = as.character(TempTarget))) +
+  #geom_text_repel(data = subset(DataForZoomFigureLabelsPerCapita, Country %in% c("Japan", "European Union", "Russia", "India", "China", "Rest of world")), direction = "y", max.overlaps = 40, segment.size = .3, box.padding = 0.15, min.segment.length = 0.01, show.legend = FALSE , mapping = aes(size = as.character(TempTarget))) +
+  geom_text(size = 2.5, color = "black", alpha = 1, data = data.frame(x = c(-150,-200), y = c(-150, -150), zoom = c(TRUE,FALSE), label = c("a)", "b)")),
+            mapping = aes(x = x, y = y, label = label)) +
+  facet_zoom(xlim = c(-ZoomLevelPerCapita, ZoomLevelPerCapita), ylim = c(-ZoomLevelPerCapita,ZoomLevelPerCapita), zoom.data = zoom, horizontal = TRUE) +
+  scale_x_continuous(breaks = pretty) +
+  scale_y_continuous(breaks = pretty) +
+  scale_color_manual(values = c(scico(5, palette = "batlow")[1:4], "gray")) +
+  scale_size_manual(values = c(1.7,1), labels = c("1.5°C target", "2°C target")) +
+  scale_alpha_manual(values = c(1,0.4), labels = c("1.5°C target", "2°C target")) +
+  scale_shape_discrete(labels = c("1.5°C target", "2°C target")) +
+  labs(x = expression(paste("Carbon debt per capita (t", CO[2],")")), y = expression(paste("Excessive carbon claims per capita (t", CO[2],")")), color = NULL, shape = NULL, size = NULL, alpha = NULL) +
+  theme_light(base_size = 8) + theme(legend.position = c(0.535,0.12),
+                                     legend.key.size = unit(1, "mm"),
+                                     legend.background = element_blank(),
+                                     legend.margin = margin(0),
+                                     legend.box.margin = margin(0),
+                                     legend.spacing = unit(0,"pt"))
+
+png(filename = "Supplementary Figure 4 - CarbonDebtvsExcessiveClaims Comparing 1.5C and 2C.png", width = 88*2, height = 88,  units = "mm", res = 500)
+print(CarbonDebtvsExcessiveClaimsComparisonPerCapita)
 dev.off()
 
 #### Figures and Data for Sensitivity Analysis ####
@@ -478,7 +566,7 @@ SensitivityAnalysisCarbonDebtAssumption <- ggplot() +
                      strip.placement = "outside",
                      panel.grid.major.y = element_blank())
 
-png(filename = "Extended Data Figure 3 - SensitivityAnalysisCarbonDebtAssumption.png", width = 88*2, height = 88*2.5,  units = "mm", res = 500)
+png(filename = "Supplementary Figure 6 - SensitivityAnalysisCarbonDebtAssumption.png", width = 88*2, height = 88*2.5,  units = "mm", res = 500)
 print(SensitivityAnalysisCarbonDebtAssumption)
 dev.off()
 
@@ -504,7 +592,7 @@ SensitivityAnalysisAllocationPrinciple <- ggplot() +
                      strip.placement = "outside",
                      panel.grid.major.y = element_blank())
 
-png(filename = "Extended Data Figure 4 - SensitivityAnalysisAllocationPrinciple.png", width = 88*2, height = 88*2.5,  units = "mm", res = 500)
+png(filename = "Supplementary Figure 7 - SensitivityAnalysisAllocationPrinciple.png", width = 88*2, height = 88*2.5,  units = "mm", res = 500)
 print(SensitivityAnalysisAllocationPrinciple)
 dev.off()
 
@@ -530,7 +618,72 @@ SensitivityAnalysisAllocationPrinciplewCarbonDebt <- ggplot() +
                      strip.placement = "outside",
                      panel.grid.major.y = element_blank())
 
-png(filename = "Extended Data Figure 5 - SensitivityAnalysisAllocationPrinciplewCarbonDebt.png", width = 88*2, height = 88*2.5,  units = "mm", res = 500)
+png(filename = "Supplementary Figure 8 - SensitivityAnalysisAllocationPrinciplewCarbonDebt.png", width = 88*2, height = 88*2.5,  units = "mm", res = 500)
 print(SensitivityAnalysisAllocationPrinciplewCarbonDebt)
 dev.off()
+
+CountriesForExplaining <- 
+  #c("Thailand", "United Arab Emirates")
+  #c("Chile", "Argentina", "Thailand", "Japan", "Saudi Arabia", "United Arab Emirates", "Kazakhstan")
+  c("Chile", "Argentina", "Thailand", "China", "United Kingdom", "Switzerland", "Japan", "European Union", "Saudi Arabia", "United Arab Emirates", "Kazakhstan", "South Africa", "Iran", "New Zealand", "Canada", "Australia", "United States", "Singapore", "Norway")
+DataGraphForExplaining <- rbind(cbind(Time = "Future", merge(subset(PlannedEmissions, Country %in% CountriesForExplaining), 
+                                                             subset(DataUNPopulation, Year >= 2023 & Country %in% CountriesForExplaining), by = c("Country", "Year"))),
+                                cbind(Time = "Historic", merge(subset(DataGlobalCarbonBudget, Year >= 1990 & Country %in% c("World", CountriesForExplaining)), 
+                                                               subset(DataUNPopulation, Year >= 1990 & Year <= 2022 & Country %in% c("World", CountriesForExplaining)), by = c("Country", "Year"))))
+DataGraphForExplaining <- cbind(DataGraphForExplaining, EmissionIndex = 0, PopulationIndex = 0, Effect = "")
+for (Country in unique(DataGraphForExplaining$Country)) {
+  DataGraphForExplaining$EmissionIndex[DataGraphForExplaining$Country == Country] = DataGraphForExplaining$EmissionsMtCO2[DataGraphForExplaining$Country == Country]/DataGraphForExplaining$EmissionsMtCO2[DataGraphForExplaining$Country == Country & DataGraphForExplaining$Year == 2022]
+  DataGraphForExplaining$PopulationIndex[DataGraphForExplaining$Country == Country] = DataGraphForExplaining$Population[DataGraphForExplaining$Country == Country]/DataGraphForExplaining$Population[DataGraphForExplaining$Country == Country & DataGraphForExplaining$Year == 2022]
+  DataGraphForExplaining$Effect[DataGraphForExplaining$Country == Country] = ifelse(Country == "World", "World",ifelse(DataFiguresSensitivity$Change[DataFiguresSensitivity$Country == Country & DataFiguresSensitivity$AllocationPrinciple == "Equal cumulative per capita" & DataFiguresSensitivity$CarbonDebtAssumption == 1990 & DataFiguresSensitivity$TempTarget == 1.5 & DataFiguresSensitivity$Graph == factor("ChangeComparedToMain", levels = c("AdditionalCarbonAccountability", "AdditionalCarbonAccountabilityPerCapita", "ChangeComparedToMain"),                                                                                                                                                                                                                                                                                                                                       labels = c(expression(paste("Additional carbon accountability (Gt", CO[2],")")), expression(paste("Additional carbon accountability per capita (t", CO[2],")")), expression(paste("Change compared to main case (%)"))))]>0,"Positive","Negative"))
+}
+
+
+GraphForExplainingMethodDiff <- ggplot() +
+  #geom_line(data = cbind(subset(DataGraphForExplaining, Country != "World"), Graph = "Emissions"), mapping = aes(x = Year, y = EmissionsMtCO2, linetype = Effect, color = Country)) +
+  #geom_line(data = cbind(subset(DataGraphForExplaining, Country != "World"), Graph = "Population"), mapping = aes(x = Year, y = Population, linetype = Effect, color = Country)) +
+  geom_line(data = cbind(subset(DataGraphForExplaining), Graph = "EmissionIndex"), mapping = aes(x = Year, y = EmissionIndex, linetype = Effect, color = Country)) +
+  geom_line(data = cbind(subset(DataGraphForExplaining), Graph = "PopulationIndex"), mapping = aes(x = Year, y = PopulationIndex, linetype = Effect, color = Country)) +
+  geom_line(data = cbind(DataGraphForExplaining, Graph = "Emissions per capita"), mapping = aes(x = Year, y = EmissionsMtCO2/Population*1e6, linetype = Effect, color = Country)) +
+  geom_vline(xintercept = 2022) +
+  geom_text_repel(data = cbind(subset(DataGraphForExplaining, Year == 1990), Graph = "PopulationIndex"), 
+                  size = 2.5, show.legend = FALSE,max.overlaps = 40,
+                  hjust = 0,
+                  box.padding = .2,
+                  segment.angle = 20,
+                  segment.curvature = -0.1,
+                  segment.size = .3,
+                  segment.alpha = .5,
+                  min.segment.length = 0.1, 
+                  xlim = c(NA, 1990),
+                  mapping = aes(label = Country, x = Year, y = PopulationIndex, color = Country)) +
+  geom_text_repel(data = cbind(subset(DataGraphForExplaining, Year == 1990), Graph = "Emissions per capita"), 
+                  size = 2.5, show.legend = FALSE,max.overlaps = 40,
+                  hjust = 0,
+                  box.padding = .2,
+                  segment.angle = 20,
+                  segment.curvature = -0.1,
+                  segment.size = .3,
+                  segment.alpha = .5,
+                  min.segment.length = 0.1, 
+                  xlim = c(NA, 1990),
+                  mapping = aes(label = Country, x = Year, y = EmissionsMtCO2/Population*1e6, color = Country)) +
+  geom_text_repel(data = cbind(subset(DataGraphForExplaining, Year == 1990), Graph = "EmissionIndex"), 
+                  size = 2.5, show.legend = FALSE, max.overlaps = 40,
+                  hjust = 0,
+                  box.padding = .2,
+                  segment.angle = 20,
+                  segment.curvature = -0.1,
+                  segment.size = .3,
+                  segment.alpha = .5,
+                  min.segment.length = 0.1, 
+                  xlim = c(NA, 1990),
+                  mapping = aes(label = Country, x = Year, y = EmissionIndex, color = Country)) +
+  facet_wrap(~Graph, nrow = 3, scales = "free") +
+  scale_linetype_manual(values = c(1,3,2)) +
+  scale_color_manual(values = c(scico(length(CountriesForExplaining), palette = "batlow"), "black")) +
+  coord_cartesian(xlim = c(1970,2070)) +
+  guides(color = "none") + labs(y = NULL) +
+  theme(legend.position = "bottom")
+  
+              
 
