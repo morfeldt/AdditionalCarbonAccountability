@@ -266,7 +266,17 @@ AdditionalCarbonAccountability <-
         }
       ExcessiveCarbonClaims = ifelse(Country == "World", sum(PlannedEmissions$EmissionsMtCO2), sum(PlannedEmissions$EmissionsMtCO2[PlannedEmissions$Country == Country])) + ifelse(AllocationPrincipleCB == "Equal cumulative per capita",sum(DataGlobalCarbonBudget$EmissionsMtCO2[DataGlobalCarbonBudget$Country == Country & DataGlobalCarbonBudget$Year >= ifelse(CarbonDebtAssumption == FALSE, 2023, CarbonDebtAssumption)]),0) - NationalFutureCarbonBudget #Equation 2
       TotalExcessiveCarbonClaims = CarbonDebt + ExcessiveCarbonClaims # Equation 4
-      AdditionalCarbonAccountabilityCalculation = rbind(AdditionalCarbonAccountabilityCalculation, data.frame(Country = Country, EconomicDevelopment = CountryAssumptions$Development[CountryAssumptions$Country == Country], TempTarget = TempTarget, AllocationPrincipleCB = AllocationPrincipleCB, AllocationPrincipleEAP = AllocationPrincipleEAP, CarbonDebtAssumption = CarbonDebtAssumption, GDPPerCapita = DataWorldBank$GDPpc[DataWorldBank$Year == 2022 & DataWorldBank$Country == Country], CarbonDebt = CarbonDebt, FutureCarbonClaims = sum(PlannedEmissions$EmissionsMtCO2[PlannedEmissions$Country == Country]), ExcessiveCarbonClaims = ExcessiveCarbonClaims, TotalExcessiveCarbonClaims = TotalExcessiveCarbonClaims))
+      AdditionalCarbonAccountabilityCalculation = rbind(AdditionalCarbonAccountabilityCalculation, data.frame(Country = Country, 
+                                                                                                              EconomicDevelopment = CountryAssumptions$Development[CountryAssumptions$Country == Country], 
+                                                                                                              TempTarget = TempTarget, 
+                                                                                                              AllocationPrincipleCB = AllocationPrincipleCB, 
+                                                                                                              AllocationPrincipleEAP = AllocationPrincipleEAP, 
+                                                                                                              CarbonDebtAssumption = CarbonDebtAssumption, 
+                                                                                                              GDPPerCapita = DataWorldBank$GDPpc[DataWorldBank$Year == 2022 & DataWorldBank$Country == Country], 
+                                                                                                              CarbonDebt = CarbonDebt, 
+                                                                                                              FutureCarbonClaims = ifelse(Country == "World", sum(PlannedEmissions$EmissionsMtCO2), sum(PlannedEmissions$EmissionsMtCO2[PlannedEmissions$Country == Country])), 
+                                                                                                              ExcessiveCarbonClaims = ExcessiveCarbonClaims, 
+                                                                                                              TotalExcessiveCarbonClaims = TotalExcessiveCarbonClaims))
     }
     ## STEP 3 ##
     EmissionAllowancesPool = -sum(AdditionalCarbonAccountabilityCalculation$TotalExcessiveCarbonClaims[AdditionalCarbonAccountabilityCalculation$TotalExcessiveCarbonClaims < 0]) # Equation 5
@@ -727,7 +737,7 @@ SensitivityAnalysisAllocationPrincipleOnlyCB <- ggplot() +
                                                labels = c(expression(paste("Additional carbon accountability (Gt", CO[2],")")), expression(paste("Additional carbon accountability per capita (t", CO[2],")")), expression(paste("Change compared to main case (%)")))) ~ scale_x_continuous(breaks = -1, limits = c(0,NA)))) +
   scale_fill_manual(values = c(scico(5, palette = "roma")[2], scico(4, palette = "roma")[1], scico(4, palette = "roma")[3:5]),
                     labels = c("Capability\n(only for the carbon budget\n- based on annual GDP per\ncapita 2023-2070)", 
-                               "Main case:\nEqual cumulative emissions per capita\ncombined with responsibility\nfor carbon debt since 1990", 
+                               "Main case:\nEqual cumulative emissions per capita", 
                                "Contraction and convergence\n(only for the carbon budget\n- reaching equal annual\nemissions per capita by 2040)", 
                                "Equal cumulative emissions per capita\n(only for the carbon budget\n- cumulative emissions over\nthe period 1990-2070)", 
                                "Grandfathering\n(only for the carbon budget\n- based on share in 2022 global\nemissions)")) +
@@ -778,7 +788,7 @@ SensitivityAnalysisAllocationPrincipleOnlyEAP <- ggplot() +
                                                labels = c(expression(paste("Additional carbon accountability (Gt", CO[2],")")), expression(paste("Additional carbon accountability per capita (t", CO[2],")")), expression(paste("Change compared to main case (%)")))) ~ scale_x_continuous(breaks = -1, limits = c(0,NA)))) +
   scale_fill_manual(values = c(scico(5, palette = "roma")[2], scico(4, palette = "roma")[1], scico(4, palette = "roma")[3:5]),
                     labels = c("Capability\n(only for the emission allowances pool\n- based on cumulative GDP over the\nperiod 2023-2070)", 
-                               "Main case:\nEqual cumulative emissions per capita\ncombined with responsibility\nfor carbon debt since 1990", 
+                               "Main case:\nEqual cumulative emissions per capita", 
                                "Contraction and convergence\n(only for the emission allowances pool\n- based on cumulative population over the period\n2023-2070 and total excessive carbon claims)", 
                                "Equal cumulative emissions per capita\n(only for the emission allowances pool\n- based on cumulative population\nover the period 2023-2070)", 
                                "Grandfathering\n(only for the emission allowances pool\n- based on total excessive carbon\nclaims)")) +
