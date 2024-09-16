@@ -24,7 +24,7 @@ gc()
 NoCores <- detectCores() - 1 # Set the number of cores to use for parallel processing
 CarbonBudget = data.frame(TempTarget = c(1.5,2),
                           BudgetGtCO2 = c(250, 800)-25) # Set the carbon budget for 1.5 and 2 degrees
-CountryAssumptions <- subset(read.xlsx("CountryAssumptions.xlsx", sheetIndex = 1, colIndex = 1:6), Country != "Sweden") # Read assumptions for countries but exclude Sweden
+CountryAssumptions <- subset(read.xlsx("CountryAssumptions.xlsx", sheetIndex = 1, colIndex = 1:6)) # Read assumptions for countries including Sweden
 
 #### PREPARATION OF DATA ######
 # Read data from Global Carbon Project and WorldBank
@@ -88,7 +88,7 @@ callAPI <- function(relative_path, topics_list=FALSE){
 UNLocations <- callAPI("/locations/")
 
 # Download and read data from the UN Population Division
-EUStatesISO2 <- c("BE", "BG", "CZ", "DK", "DE", "EE", "IE", "EL", "ES", "FR", "HR", "IT", "CY", "LV", "LT", "LU", "HU", "MT", "NL", "AT", "PL", "PT", "RO", "SI", "SK", "FI", "SE") # Define the ISO2 codes for the EU states
+EUStatesISO2 <- c("BE", "BG", "CZ", "DK", "DE", "EE", "IE", "EL", "ES", "FR", "HR", "IT", "CY", "LV", "LT", "LU", "HU", "MT", "NL", "AT", "PL", "PT", "RO", "SI", "SK", "FI") # Define the ISO2 codes for the EU states (excluding Sweden)
 # Download data from the UN Population Division (not used due to long response times)
 #DataUNPopulation <- 
 #  foreach(i = UNLocations$id[UNLocations$iso3 %in% CountryAssumptions$iso3c | UNLocations$iso2 %in% EUStatesISO2], .combine = "rbind") %do% {
@@ -135,6 +135,14 @@ DataSSPFutureGDP <- rbind(DataSSPFutureGDP, cbind(Model = "Aggregate", Region = 
   aggregate(Value ~ Scenario+Year+Variable+Unit, subset(DataSSPFutureGDP, Region %in% DataWorldBank$iso3c[DataWorldBank$iso2c %in% EUStatesISO2]), sum))) # Aggregate the data for the EU states
 
 # Preparation for analysis
+DataGlobalCarbonBudget <- DataGlobalCarbonBudget[order(DataGlobalCarbonBudget$Year),]
+DataWorldBank <- DataWorldBank[order(DataWorldBank$Year),]
+
+DataGlobalCarbonBudget$EmissionsMtCO2[DataGlobalCarbonBudget$Country == "European Union" & DataGlobalCarbonBudget$Accounting == "Territorial Emissions"] <- DataGlobalCarbonBudget$EmissionsMtCO2[DataGlobalCarbonBudget$Country == "European Union" & DataGlobalCarbonBudget$Accounting == "Territorial Emissions"] - DataGlobalCarbonBudget$EmissionsMtCO2[DataGlobalCarbonBudget$Country == "Sweden" & DataGlobalCarbonBudget$Accounting == "Territorial Emissions"] #Adjust EU data to exclude Sweden
+DataGlobalCarbonBudget$EmissionsMtCO2[DataGlobalCarbonBudget$Country == "European Union" & DataGlobalCarbonBudget$Accounting == "Consumption Emissions"] <- DataGlobalCarbonBudget$EmissionsMtCO2[DataGlobalCarbonBudget$Country == "European Union" & DataGlobalCarbonBudget$Accounting == "Consumption Emissions"] - DataGlobalCarbonBudget$EmissionsMtCO2[DataGlobalCarbonBudget$Country == "Sweden" & DataGlobalCarbonBudget$Accounting == "Consumption Emissions"] #Adjust EU data to exclude Sweden
+DataWorldBank$GDP[DataWorldBank$Country == "European Union"] <- DataWorldBank$GDP[DataWorldBank$Country == "European Union"] - DataWorldBank$GDP[DataWorldBank$Country == "Sweden"] #Adjust EU data to exclude Sweden
+DataWorldBank$GDPpc[DataWorldBank$Country == "European Union"] <- DataWorldBank$GDP[DataWorldBank$Country == "European Union"] / DataUNPopulation$Population[DataUNPopulation$Country == "European Union" & DataUNPopulation$Year <= 2022]
+
 CountryAssumptions$iso3c[CountryAssumptions$Country == "Rest of world"] <- "ROW" # Replace 'Rest of world' with 'ROW' in 'iso3c'
 DataUNPopulation <- rbind(subset(DataUNPopulation, iso3c %in% CountryAssumptions$iso3c),
                           cbind(Country = "Rest of world", iso3c = "ROW", iso2c = "RW", aggregate(Population ~ Year, subset(DataUNPopulation, iso3c %in% CountryAssumptions$iso3c & Country != "World"), sum))) # Aggregate the population data for the analyzed countries and temporarily store as 'Rest of World'
