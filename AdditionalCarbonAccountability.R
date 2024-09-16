@@ -25,6 +25,7 @@ NoCores <- detectCores() - 1 # Set the number of cores to use for parallel proce
 CarbonBudget = data.frame(TempTarget = c(1.5,2),
                           BudgetGtCO2 = c(250, 800)-25) # Set the carbon budget for 1.5 and 2 degrees
 CountryAssumptions <- subset(read.xlsx("CountryAssumptions.xlsx", sheetIndex = 1, colIndex = 1:6)) # Read assumptions for countries including Sweden
+CountryAssumptions$Country[CountryAssumptions$Country == "European Union"] <- "European Union (excl. Sweden)"
 
 #### PREPARATION OF DATA ######
 # Read data from Global Carbon Project and WorldBank
@@ -38,6 +39,7 @@ DataWorldBank$Country[DataWorldBank$iso3c == "IRN"] <- "Iran"
 DataWorldBank$Country[DataWorldBank$iso3c == "RUS"] <- "Russia"
 DataWorldBank$Country[DataWorldBank$iso3c == "KOR"] <- "South Korea"
 DataWorldBank$Country[DataWorldBank$iso3c == "TUR"] <- "Türkiye"
+DataWorldBank$Country[DataWorldBank$iso3c == "EUU"] <- "European Union (excl. Sweden)"
 
 # Add iso classification for countries from 'DataWorldBank' to 'CountryAssumptions'
 CountryAssumptions <- merge(CountryAssumptions, subset(DataWorldBank, Country %in% CountryAssumptions$Country & Year == 2022, select = c(Country,iso3c)), by = "Country", all.x = TRUE)
@@ -53,7 +55,7 @@ DataGlobalCarbonBudget$EmissionsMtCO2 <- DataGlobalCarbonBudget$EmissionsMtCO2 *
 DataGlobalCarbonBudget$Country <- as.character(DataGlobalCarbonBudget$Country) # Convert 'Country' to character
 DataGlobalCarbonBudget$Country <- gsub(".", " ", DataGlobalCarbonBudget$Country, fixed = TRUE) # Replace '.' with ' ' in 'Country'
 DataGlobalCarbonBudget$Country[DataGlobalCarbonBudget$Country == "USA"] <- "United States" # Replace 'USA' with 'United States' in 'Country'
-DataGlobalCarbonBudget$Country[DataGlobalCarbonBudget$Country == "EU27"] <- "European Union" # Replace 'EU27' with 'European Union' in 'Country
+DataGlobalCarbonBudget$Country[DataGlobalCarbonBudget$Country == "EU27"] <- "European Union (excl. Sweden)" # Replace 'EU27' with 'European Union (excl. Sweden)' in 'Country
 DataGlobalCarbonBudget <- merge(DataGlobalCarbonBudget, subset(CountryAssumptions, select = c(Country, iso3c)), by = "Country") # Add iso classification for countries to 'DataGlobalCarbonBudget'
 DataGlobalCarbonBudgetALL <- DataGlobalCarbonBudget
 
@@ -99,7 +101,7 @@ EUStatesISO2 <- c("BE", "BG", "CZ", "DK", "DE", "EE", "IE", "EL", "ES", "FR", "H
 # Read data from the UN Population Division file instead of downloading (due to long response times in the UN Population API)
 DataUNPopulation <- subset(read.csv("unpopulation_dataportal.csv"), SexId == 3 & VariantId == 4, select = c(Location, Iso3, Iso2, Time, Value)) # Read Population data from the UN Population Division
 
-DataUNPopulation <- rbind(DataUNPopulation, cbind(data.frame(Location = rep("European Union", length(1960:2070)),
+DataUNPopulation <- rbind(DataUNPopulation, cbind(data.frame(Location = rep("European Union (excl. Sweden)", length(1960:2070)),
                                    Iso3 = rep("EUU", length(1960:2070)),
                                    Iso2 = rep("EU", length(1960:2070)),
                                    aggregate(Value ~ Time, subset(DataUNPopulation, Iso2 %in% EUStatesISO2),sum)))) # Aggregate the population data for the EU states
@@ -138,10 +140,10 @@ DataSSPFutureGDP <- rbind(DataSSPFutureGDP, cbind(Model = "Aggregate", Region = 
 DataGlobalCarbonBudget <- DataGlobalCarbonBudget[order(DataGlobalCarbonBudget$Year),]
 DataWorldBank <- DataWorldBank[order(DataWorldBank$Year),]
 
-DataGlobalCarbonBudget$EmissionsMtCO2[DataGlobalCarbonBudget$Country == "European Union" & DataGlobalCarbonBudget$Accounting == "Territorial Emissions"] <- DataGlobalCarbonBudget$EmissionsMtCO2[DataGlobalCarbonBudget$Country == "European Union" & DataGlobalCarbonBudget$Accounting == "Territorial Emissions"] - DataGlobalCarbonBudget$EmissionsMtCO2[DataGlobalCarbonBudget$Country == "Sweden" & DataGlobalCarbonBudget$Accounting == "Territorial Emissions"] #Adjust EU data to exclude Sweden
-DataGlobalCarbonBudget$EmissionsMtCO2[DataGlobalCarbonBudget$Country == "European Union" & DataGlobalCarbonBudget$Accounting == "Consumption Emissions"] <- DataGlobalCarbonBudget$EmissionsMtCO2[DataGlobalCarbonBudget$Country == "European Union" & DataGlobalCarbonBudget$Accounting == "Consumption Emissions"] - DataGlobalCarbonBudget$EmissionsMtCO2[DataGlobalCarbonBudget$Country == "Sweden" & DataGlobalCarbonBudget$Accounting == "Consumption Emissions"] #Adjust EU data to exclude Sweden
-DataWorldBank$GDP[DataWorldBank$Country == "European Union"] <- DataWorldBank$GDP[DataWorldBank$Country == "European Union"] - DataWorldBank$GDP[DataWorldBank$Country == "Sweden"] #Adjust EU data to exclude Sweden
-DataWorldBank$GDPpc[DataWorldBank$Country == "European Union"] <- DataWorldBank$GDP[DataWorldBank$Country == "European Union"] / DataUNPopulation$Population[DataUNPopulation$Country == "European Union" & DataUNPopulation$Year <= 2022]
+DataGlobalCarbonBudget$EmissionsMtCO2[DataGlobalCarbonBudget$Country == "European Union (excl. Sweden)" & DataGlobalCarbonBudget$Accounting == "Territorial Emissions"] <- DataGlobalCarbonBudget$EmissionsMtCO2[DataGlobalCarbonBudget$Country == "European Union (excl. Sweden)" & DataGlobalCarbonBudget$Accounting == "Territorial Emissions"] - DataGlobalCarbonBudget$EmissionsMtCO2[DataGlobalCarbonBudget$Country == "Sweden" & DataGlobalCarbonBudget$Accounting == "Territorial Emissions"] #Adjust EU data to exclude Sweden
+DataGlobalCarbonBudget$EmissionsMtCO2[DataGlobalCarbonBudget$Country == "European Union (excl. Sweden)" & DataGlobalCarbonBudget$Accounting == "Consumption Emissions"] <- DataGlobalCarbonBudget$EmissionsMtCO2[DataGlobalCarbonBudget$Country == "European Union (excl. Sweden)" & DataGlobalCarbonBudget$Accounting == "Consumption Emissions"] - DataGlobalCarbonBudget$EmissionsMtCO2[DataGlobalCarbonBudget$Country == "Sweden" & DataGlobalCarbonBudget$Accounting == "Consumption Emissions"] #Adjust EU data to exclude Sweden
+DataWorldBank$GDP[DataWorldBank$Country == "European Union (excl. Sweden)"] <- DataWorldBank$GDP[DataWorldBank$Country == "European Union (excl. Sweden)"] - DataWorldBank$GDP[DataWorldBank$Country == "Sweden"] #Adjust EU data to exclude Sweden
+DataWorldBank$GDPpc[DataWorldBank$Country == "European Union (excl. Sweden)"] <- DataWorldBank$GDP[DataWorldBank$Country == "European Union (excl. Sweden)"] / DataUNPopulation$Population[DataUNPopulation$Country == "European Union (excl. Sweden)" & DataUNPopulation$Year <= 2022]
 
 CountryAssumptions$iso3c[CountryAssumptions$Country == "Rest of world"] <- "ROW" # Replace 'Rest of world' with 'ROW' in 'iso3c'
 DataUNPopulation <- rbind(subset(DataUNPopulation, iso3c %in% CountryAssumptions$iso3c),
@@ -364,7 +366,7 @@ DataAnnualEmissionsFigure$PastFuture[DataAnnualEmissionsFigure$Year > 2022] = "P
 DataAnnualEmissionsFigure$PastFuture[DataAnnualEmissionsFigure$Year <= 2022] = "Historic emissions" # Define the past and future emissions <= 2022 
 DataAnnualEmissionsFigure <- rbind(DataAnnualEmissionsFigure, cbind(PastFuture = "Planned emissions", subset(DataAnnualEmissionsFigure, Year == 2022, select = -PastFuture))) # Add the planned emissions for 2022
 DataAnnualEmissionsFigure$Development <- factor(DataAnnualEmissionsFigure$Development, levels = c("High", "Upper-middle", "Lower-middle", "Low"), labels = c("High\nincome", "Upper-middle\nincome", "Lower-middle\nincome", "Low\nincome")) # Define the development levels
-CountriesPlannedEmissionsFig <- c("United States", "European Union", "Brazil", "Russia", "India", "China", "South Africa", "Iran", "United Arab Emirates", "Ethiopia") # Define the countries for the planned emissions figure for selected countries
+CountriesPlannedEmissionsFig <- c("United States", "European Union (excl. Sweden)", "Brazil", "Russia", "India", "China", "South Africa", "Iran", "United Arab Emirates", "Ethiopia") # Define the countries for the planned emissions figure for selected countries
 
 # Create a table with results for the manuscript and the data for the Excel-calculation
 TableForManuscript <- subset(AdditionalCarbonAccountability, AllocationPrincipleCB == "Equal cumulative per capita (main case)" & AllocationPrincipleEAP == "Equal cumulative per capita (main case)" & CarbonDebtAssumption == 1990 & !Country %in% c("World" ,"Rest of world")) # Subset the data for the table
