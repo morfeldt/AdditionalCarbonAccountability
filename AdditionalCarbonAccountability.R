@@ -390,11 +390,13 @@ for (Country in CountryAssumptions$Country) {
 }
 
 # Loads the Excel-file with pre-defined Excel-calculations and replaces the data to match the R-calculations
-XlsxRepository <- loadWorkbook("TablesInManuscriptandCalculations.xlsx") # Load the Excel file
-removeSheet(XlsxRepository, sheetName = "Table 2") # Remove the sheet for the results for the 1.5 degrees Celsius target
-removeSheet(XlsxRepository, sheetName = "SupplementaryTable1") # Remove the sheet for the results for the 2 degrees Celsius target
-removeSheet(XlsxRepository, sheetName = "DataFromRScriptForCalculations") # Remove the sheet for the data
-saveWorkbook(XlsxRepository, "TablesInManuscriptandCalculations.xlsx") # Save the Excel file
+if (file.exists("TablesInManuscriptandCalculations.xlsx") == TRUE) {
+  XlsxRepository <- loadWorkbook("TablesInManuscriptandCalculations.xlsx") # Load the Excel file
+  removeSheet(XlsxRepository, sheetName = "Table 2") # Remove the sheet for the results for the 1.5 degrees Celsius target
+  removeSheet(XlsxRepository, sheetName = "SupplementaryTable1") # Remove the sheet for the results for the 2 degrees Celsius target
+  removeSheet(XlsxRepository, sheetName = "DataFromRScriptForCalculations") # Remove the sheet for the data
+  saveWorkbook(XlsxRepository, "TablesInManuscriptandCalculations.xlsx") # Save the Excel file
+}
 
 write.xlsx(subset(TableForManuscript, TempTarget == 1.5), "TablesInManuscriptandCalculations.xlsx", sheetName = "Table 2", row.names = FALSE, append = TRUE) # Write the table for the 1.5 degrees Celsius target
 write.xlsx(subset(TableForManuscript, TempTarget == 2), "TablesInManuscriptandCalculations.xlsx", sheetName = "SupplementaryTable1", row.names = FALSE, append = TRUE) # Write the table for the 2 degrees Celsius target
@@ -487,7 +489,7 @@ FigurePlannedEmissions <- ggplot() +
              labeller = label_parsed) +
   scale_x_continuous(breaks = seq(2000, 2070, 10)) +
   scale_y_continuous(n.breaks = 7) +
-  scale_color_manual(values = scico(5, palette = "batlow")[1:4]) +
+  scale_color_manual(values = scico(4, palette = "roma")) +
   scale_alpha_manual(values = c(0.25,1)) +
   scale_linetype_manual(values = c("solid", "dashed")) +
   scale_size_manual(values = rep(0.5, 10)) +
@@ -522,7 +524,7 @@ CarbonDebtvsExcessiveClaimsPerCapita <- ggplot(mapping = aes(x = CarbonDebtPerCa
   facet_zoom(xlim = c(-ZoomLevelPerCapita, ZoomLevelPerCapita), ylim = c(-ZoomLevelPerCapita,ZoomLevelPerCapita), zoom.data = zoom, horizontal = TRUE) +
   scale_x_continuous(breaks = pretty) +
   scale_y_continuous(breaks = pretty) +
-  scale_color_manual(values = c(scico(5, palette = "batlow")[1:4], "gray")) +
+  scale_color_manual(values = c(scico(4, palette = "roma"), "gray")) +
   labs(x = expression(paste("Carbon debt per capita (t", CO[2],")")), y = expression(paste("Excessive carbon claims per capita (t", CO[2],")")), color = NULL) +
   theme_light(base_size = 8) + theme(legend.position = "inside",
                                      legend.position.inside = c(0.535,0.1),
@@ -549,7 +551,7 @@ CarbonDebtvsExcessiveClaims <- ggplot(mapping = aes(x = CarbonDebt/1000, y = Exc
   facet_zoom(xlim = c(-ZoomLevel, ZoomLevel)/1000, ylim = c(-ZoomLevel,ZoomLevel)/1000, zoom.data = zoom, horizontal = TRUE) +
   scale_x_continuous(breaks = pretty) +
   scale_y_continuous(breaks = pretty) +
-  scale_color_manual(values = c(scico(5, palette = "batlow")[1:4], "gray")) +
+  scale_color_manual(values = c(scico(4, palette = "roma"), "gray")) +
   labs(x = expression(paste("Carbon Debt (Gt", CO[2],")")), y = expression(paste("Excessive Carbon Claims (Gt", CO[2],")")), color = NULL) +
   theme_light(base_size = 8) + theme(legend.position = "inside",
                                      legend.position.inside = c(0.535,0.1),
@@ -571,7 +573,7 @@ CarbonDebtvsExcessiveClaims2CPerCapita <- ggplot(mapping = aes(x = CarbonDebtPer
   facet_zoom(xlim = c(-ZoomLevelPerCapita, ZoomLevelPerCapita), ylim = c(-ZoomLevelPerCapita,ZoomLevelPerCapita), zoom.data = zoom, horizontal = TRUE) +
   scale_x_continuous(breaks = pretty) +
   scale_y_continuous(breaks = pretty) +
-  scale_color_manual(values = c(scico(5, palette = "batlow")[1:4], "gray")) +
+  scale_color_manual(values = c(scico(4, palette = "roma"), "gray")) +
   labs(x = expression(paste("Carbon debt per capita (t", CO[2],")")), y = expression(paste("Excessive carbon claims per capita (t", CO[2],")")), color = NULL) +
   theme_light(base_size = 8) + theme(legend.position = "inside",
                                      legend.position.inside = c(0.535,0.1),
@@ -593,7 +595,7 @@ CarbonDebtvsExcessiveClaims2C <- ggplot(mapping = aes(x = CarbonDebt/1000, y = E
   facet_zoom(xlim = c(-ZoomLevel, ZoomLevel)/1000, ylim = c(-ZoomLevel,ZoomLevel)/1000, zoom.data = zoom, horizontal = TRUE) +
   scale_x_continuous(breaks = pretty) +
   scale_y_continuous(breaks = pretty) +
-  scale_color_manual(values = c(scico(5, palette = "batlow")[1:4], "gray")) +
+  scale_color_manual(values = c(scico(4, palette = "roma"), "gray")) +
   labs(x = expression(paste("Carbon Debt (Gt", CO[2],")")), y = expression(paste("Excessive Carbon Claims (Gt", CO[2],")")), color = NULL) +
   theme_light(base_size = 8) + theme(legend.position = "inside",
                                      legend.position.inside = c(0.535,0.1),
@@ -604,63 +606,7 @@ png(filename = "Supplementary Figure 3 - CarbonDebtvsExcessiveClaims 2C.png", wi
 print(CarbonDebtvsExcessiveClaims2C) # Print the figure
 dev.off() # Close the PNG file
 
-# Plot Supplementary Figure 4 for the per capita values
-CarbonDebtvsExcessiveClaimsComparisonPerCapita <- ggplot(mapping = aes(x = CarbonDebtPerCapita, y = ExcessiveCarbonClaimsPerCapita, color = EconomicDevelopment, label = Country, shape = as.character(TempTarget), alpha = as.character(TempTarget))) +
-  geom_hline(data = subset(DataForZoomFigure), mapping = aes(yintercept = 0), color = "gray", size = .5) +
-  geom_vline(data = subset(DataForZoomFigure), mapping = aes(xintercept = 0), color = "gray", size = .5) +
-  geom_point(data = subset(DataForZoomFigurePerCapita), size = .5) +
-  geom_text_repel(data = DataForZoomFigureLabelsPerCapita, max.overlaps = 40, segment.size = .3, box.padding = 0.15, min.segment.length = 0.01, show.legend = FALSE, mapping = aes(size = as.character(TempTarget))) +
-  geom_text(size = 2.5, color = "black", alpha = 1, data = data.frame(x = c(-150,-200), y = c(-150, -150), zoom = c(TRUE,FALSE), label = c("a)", "b)")),
-            mapping = aes(x = x, y = y, label = label)) +
-  facet_zoom(xlim = c(-ZoomLevelPerCapita, ZoomLevelPerCapita), ylim = c(-ZoomLevelPerCapita,ZoomLevelPerCapita), zoom.data = zoom, horizontal = TRUE) +
-  scale_x_continuous(breaks = pretty) +
-  scale_y_continuous(breaks = pretty) +
-  scale_color_manual(values = c(scico(5, palette = "batlow")[1:4], "gray")) +
-  scale_size_manual(values = c(1.7,1), labels = c("1.5°C target", "2°C target")) +
-  scale_alpha_manual(values = c(1,0.4), labels = c("1.5°C target", "2°C target")) +
-  scale_shape_discrete(labels = c("1.5°C target", "2°C target")) +
-  labs(x = expression(paste("Carbon debt per capita (t", CO[2],")")), y = expression(paste("Excessive carbon claims per capita (t", CO[2],")")), color = NULL, shape = NULL, size = NULL, alpha = NULL) +
-  theme_light(base_size = 8) + theme(legend.position = "inside",
-                                     legend.position.inside = c(0.535,0.12),
-                                     legend.key.size = unit(1, "mm"),
-                                     legend.background = element_blank(),
-                                     legend.margin = margin(0),
-                                     legend.box.margin = margin(0),
-                                     legend.spacing = unit(0,"pt"))
-
-png(filename = "Supplementary Figure 4 - CarbonDebtvsExcessiveClaims Comparing 1.5C and 2C.png", width = 88*2, height = 88,  units = "mm", res = 500) # Save the figure as a PNG file
-print(CarbonDebtvsExcessiveClaimsComparisonPerCapita) # Print the figure
-dev.off() # Close the PNG file
-
-# Plot Supplementary Figure 5 for the comparison of the 1.5 and 2 degrees Celsius targets
-CarbonDebtvsExcessiveClaimsComparison <- ggplot(mapping = aes(x = CarbonDebt/1000, y = ExcessiveCarbonClaims/1000, color = EconomicDevelopment, label = Country, shape = as.character(TempTarget), alpha = as.character(TempTarget))) +
-  geom_hline(data = subset(DataForZoomFigure), mapping = aes(yintercept = 0), color = "gray", size = .5) +
-  geom_vline(data = subset(DataForZoomFigure), mapping = aes(xintercept = 0), color = "gray", size = .5) +
-  geom_point(data = subset(DataForZoomFigure), size = .5) +
-  geom_text_repel(data = DataForZoomFigureLabels, max.overlaps = 40, segment.size = .3, box.padding = 0.15, min.segment.length = 0.01, show.legend = FALSE, mapping = aes(size = as.character(TempTarget))) +
-  geom_text(size = 2.5, color = "black", alpha = 1, data = data.frame(x = c(-22,-120), y = c(-22, -120), zoom = c(TRUE,FALSE), label = c("a)", "b)")),
-            mapping = aes(x = x, y = y, label = label)) +
-  facet_zoom(xlim = c(-ZoomLevel, ZoomLevel)/1000, ylim = c(-ZoomLevel,ZoomLevel)/1000, zoom.data = zoom, horizontal = TRUE) +
-  scale_x_continuous(breaks = pretty) +
-  scale_y_continuous(breaks = pretty) +
-  scale_color_manual(values = c(scico(5, palette = "batlow")[1:4], "gray")) +
-  scale_size_manual(values = c(1.7,1), labels = c("1.5°C target", "2°C target")) +
-  scale_alpha_manual(values = c(1,0.4), labels = c("1.5°C target", "2°C target")) +
-  scale_shape_discrete(labels = c("1.5°C target", "2°C target")) +
-  labs(x = expression(paste("Carbon Debt (Gt", CO[2],")")), y = expression(paste("Excessive Carbon Claims (Gt", CO[2],")")), color = NULL, shape = NULL, size = NULL, alpha = NULL) +
-  theme_light(base_size = 8) + theme(legend.position = "inside",
-                                     legend.position.inside = c(0.535,0.12),
-                                     legend.key.size = unit(1, "mm"),
-                                     legend.background = element_blank(),
-                                     legend.margin = margin(0),
-                                     legend.box.margin = margin(0),
-                                     legend.spacing = unit(0,"pt"))
-
-png(filename = "Supplementary Figure 5 - CarbonDebtvsExcessiveClaims Comparing 1.5C and 2C.png", width = 88*2, height = 88,  units = "mm", res = 500) # Save the figure as a PNG file
-print(CarbonDebtvsExcessiveClaimsComparison) # Print the figure
-dev.off() # Close the PNG file
-
-# Plot Supplementary Figure 6 on the sensitivity to the start year for the carbon debt
+# Plot Supplementary Figure 4 on the sensitivity to the start year for the carbon debt
 SensitivityAnalysisCarbonDebtAssumption <- ggplot() +
   geom_col(data = subset(DataFiguresSensitivity, !Country %in% c("World", "Rest of world") & TempTarget == 1.5 & (AllocationPrincipleCB == "Equal cumulative per capita (main case)" & AllocationPrincipleEAP == "Equal cumulative per capita (main case)") & Graph != factor("ChangeComparedToMain", levels = c("AdditionalCarbonAccountability", "AdditionalCarbonAccountabilityPerCapita", "ChangeComparedToMain"), 
                                                                                                                                                                                                                        labels = c(expression(paste("Additional carbon accountability (Gt", CO[2],")")), expression(paste("Additional carbon accountability per capita (t", CO[2],")")), expression(paste("Change compared to main case (%)"))))),
@@ -699,11 +645,11 @@ SensitivityAnalysisCarbonDebtAssumption <- ggplot() +
                                   strip.placement = "outside",
                                   panel.grid.major.y = element_blank())
 
-png(filename = "Supplementary Figure 6 - SensitivityAnalysisCarbonDebtAssumption.png", width = 88*2, height = 88*2.5,  units = "mm", res = 500) # Save the figure as a PNG file
+png(filename = "Supplementary Figure 4 - SensitivityAnalysisCarbonDebtAssumption.png", width = 88*2, height = 88*2.5,  units = "mm", res = 500) # Save the figure as a PNG file
 print(SensitivityAnalysisCarbonDebtAssumption) # Print the figure
 dev.off() # Close the PNG file
 
-# Plot Supplementary Figure 7 on the sensitivity to the assumed allocation principle for only carbon budget (only CB)
+# Plot Supplementary Figure 5 on the sensitivity to the assumed allocation principle for only carbon budget (only CB)
 SensitivityAnalysisAllocationPrincipleOnlyCB <- ggplot() +
   geom_col(data = subset(DataFiguresSensitivity, !Country %in% c("World", "Rest of world") & TempTarget == 1.5 & AllocationPrincipleEAP == "Equal cumulative per capita (main case)" & CarbonDebtAssumption == 1990 & Graph != factor("ChangeComparedToMain", levels = c("AdditionalCarbonAccountability", "AdditionalCarbonAccountabilityPerCapita", "ChangeComparedToMain"), 
                                                                                                                                                                                                                                                                                                                                                                    labels = c(expression(paste("Additional carbon accountability (Gt", CO[2],")")), expression(paste("Additional carbon accountability per capita (t", CO[2],")")), expression(paste("Change compared to main case (%)"))))),
@@ -750,11 +696,11 @@ SensitivityAnalysisAllocationPrincipleOnlyCB <- ggplot() +
                                   strip.placement = "outside",
                                   panel.grid.major.y = element_blank())
 
-png(filename = "Supplementary Figure 7 - SensitivityAnalysisAllocationPrincipleOnlyCB.png", width = 88*2, height = 88*2.5,  units = "mm", res = 500) # Save the figure as a PNG file
+png(filename = "Supplementary Figure 5 - SensitivityAnalysisAllocationPrincipleOnlyCB.png", width = 88*2, height = 88*2.5,  units = "mm", res = 500) # Save the figure as a PNG file
 print(SensitivityAnalysisAllocationPrincipleOnlyCB) # Print the figure
 dev.off() # Close the PNG file
 
-# Plot Supplementary Figure 8 on the sensitivity to the assumed allocation principle (only EAP)
+# Plot Supplementary Figure 6 on the sensitivity to the assumed allocation principle (only EAP)
 SensitivityAnalysisAllocationPrincipleOnlyEAP <- ggplot() +
   geom_col(data = subset(DataFiguresSensitivity, !Country %in% c("World", "Rest of world") & TempTarget == 1.5 & AllocationPrincipleCB == "Equal cumulative per capita (main case)" & CarbonDebtAssumption == 1990 & Graph != factor("ChangeComparedToMain", levels = c("AdditionalCarbonAccountability", "AdditionalCarbonAccountabilityPerCapita", "ChangeComparedToMain"), 
                                                                                                                                                                                                                                                                                                                                                                                 labels = c(expression(paste("Additional carbon accountability (Gt", CO[2],")")), expression(paste("Additional carbon accountability per capita (t", CO[2],")")), expression(paste("Change compared to main case (%)"))))),
@@ -801,11 +747,11 @@ SensitivityAnalysisAllocationPrincipleOnlyEAP <- ggplot() +
                                   strip.placement = "outside",
                                   panel.grid.major.y = element_blank())
 
-png(filename = "Supplementary Figure 8 - SensitivityAnalysisAllocationPrincipleOnlyEAP.png", width = 88*2, height = 88*2.5,  units = "mm", res = 500) # Save the figure as a PNG file
+png(filename = "Supplementary Figure 6 - SensitivityAnalysisAllocationPrincipleOnlyEAP.png", width = 88*2, height = 88*2.5,  units = "mm", res = 500) # Save the figure as a PNG file
 print(SensitivityAnalysisAllocationPrincipleOnlyEAP) # Print the figure
 dev.off() # Close the PNG file
 
-# Plot Supplementary Figure 9 comparing carbon debt for territorial and consumption-based emissions
+# Plot Supplementary Figure 7 comparing carbon debt for territorial and consumption-based emissions
 GraphComparingCarbonDebts <- ggplot() +
   geom_col(data = CarbonDebtConsumptionSensitivity, mapping = aes(y= Country, x = CarbonDebt/1000, fill = Accounting), position = position_dodge()) +
   geom_text(size = 3, data = subset(CarbonDebtConsumptionSensitivity, Accounting == "Consumption Emissions"), mapping = aes(y = Country, x = CarbonDebt/1000 + ifelse(CarbonDebt>0, 15, -15), label = paste0(round(ChangeTerrToCons,2)*100, "%"))) +
@@ -814,7 +760,7 @@ GraphComparingCarbonDebts <- ggplot() +
   labs(y = NULL, x = expression(paste("Carbon Debt (Gt", CO[2],")")), fill = "Accounting Framework") +
   theme_bw(base_size = 8) + theme(legend.position = "bottom")
 
-png(filename = "Supplementary Figure 9 - ComparingCarbonDebtTerritorialConsumptionBased.png", width = 88*2, height = 88*2.5,  units = "mm", res = 500) # Save the figure as a PNG file
+png(filename = "Supplementary Figure 7 - ComparingCarbonDebtTerritorialConsumptionBased.png", width = 88*2, height = 88*2.5,  units = "mm", res = 500) # Save the figure as a PNG file
 print(GraphComparingCarbonDebts) # Print the figure
 dev.off() # Close the PNG file
   
