@@ -398,21 +398,21 @@ for (Country in CountryAssumptions$Country) {
 }
 
 # Loads the Excel-file with pre-defined Excel-calculations and replaces the data to match the R-calculations
-if (file.exists("TablesInManuscriptandCalculations.xlsx") == TRUE) {
-  XlsxRepository <- loadWorkbook("TablesInManuscriptandCalculations.xlsx") # Load the Excel file
+if (file.exists("TablesInManuscriptandCalculationsSwedenExplicit.xlsx") == TRUE) {
+  XlsxRepository <- loadWorkbook("TablesInManuscriptandCalculationsSwedenExplicit.xlsx") # Load the Excel file
   removeSheet(XlsxRepository, sheetName = "Table 2") # Remove the sheet for the results for the 1.5 degrees Celsius target
   removeSheet(XlsxRepository, sheetName = "SupplementaryTable1") # Remove the sheet for the results for the 2 degrees Celsius target
   removeSheet(XlsxRepository, sheetName = "DataFromRScriptForCalculations") # Remove the sheet for the data
-  saveWorkbook(XlsxRepository, "TablesInManuscriptandCalculations.xlsx") # Save the Excel file
+  saveWorkbook(XlsxRepository, "TablesInManuscriptandCalculationsSwedenExplicit.xlsx") # Save the Excel file
 }
 
-write.xlsx(subset(TableForManuscript, TempTarget == 1.5), "TablesInManuscriptandCalculations.xlsx", sheetName = "Table 2", row.names = FALSE, append = TRUE) # Write the table for the 1.5 degrees Celsius target
-write.xlsx(subset(TableForManuscript, TempTarget == 2), "TablesInManuscriptandCalculations.xlsx", sheetName = "SupplementaryTable1", row.names = FALSE, append = TRUE) # Write the table for the 2 degrees Celsius target
-write.xlsx(TableDataForExcel, "TablesInManuscriptandCalculations.xlsx", sheetName = "DataFromRScriptForCalculations", row.names = FALSE, append = TRUE) # Write the data for the table
+write.xlsx(subset(TableForManuscript, TempTarget == 1.5), "TablesInManuscriptandCalculationsSwedenExplicit.xlsx", sheetName = "Table 2", row.names = FALSE, append = TRUE) # Write the table for the 1.5 degrees Celsius target
+write.xlsx(subset(TableForManuscript, TempTarget == 2), "TablesInManuscriptandCalculationsSwedenExplicit.xlsx", sheetName = "SupplementaryTable1", row.names = FALSE, append = TRUE) # Write the table for the 2 degrees Celsius target
+write.xlsx(TableDataForExcel, "TablesInManuscriptandCalculationsSwedenExplicit.xlsx", sheetName = "DataFromRScriptForCalculations", row.names = FALSE, append = TRUE) # Write the data for the table
 
 # Write Excel-file with estimated planned emissions for all countries
 TablewithPlannedEmissions <- dcast(PlannedEmissions, Country ~ Year, value.var = "EmissionsMtCO2") # Create a table with the planned emissions
-write.xlsx(TablewithPlannedEmissions, "PlannedEmissions.xlsx", sheetName = "EmissionsMtCO2", row.names = FALSE) # Write the table with the planned emissions
+write.xlsx(TablewithPlannedEmissions, "PlannedEmissionsSwedenExplicit.xlsx", sheetName = "EmissionsMtCO2", row.names = FALSE) # Write the table with the planned emissions
 
 # Prepare data for figures on the Excessive Carbon Claims vs. Carbon Debt
 DataForZoomFigure <- subset(AdditionalCarbonAccountability, AllocationPrincipleCB == "Equal cumulative per capita (main case)" & AllocationPrincipleEAP == "Equal cumulative per capita (main case)" & Country != "World" & CarbonDebtAssumption == 1990) # Subset the data for the zoom figure
@@ -454,7 +454,7 @@ DataFiguresSensitivity$Country <- factor(DataFiguresSensitivity$Country, levels 
 DataFiguresSensitivity$AdditionalCarbonAccountability <- DataFiguresSensitivity$AdditionalCarbonAccountability/1e3 # Convert the additional carbon accountability in the sensitivity analysis to GtCO2
 CarbonDebtConsumptionSensitivity$Country <- factor(CarbonDebtConsumptionSensitivity$Country, levels = CountriesForSensitivity$Country) # Order the countries in the comparison of using consumption-based emission allocation for the carbon debt
 
-write.xlsx(DataFiguresSensitivity, "DataForSensitivityAnalysis.xlsx", row.names = FALSE) # Write the data for the sensitivity analysis
+write.xlsx(DataFiguresSensitivity, "DataForSensitivityAnalysisSwedenExplicit.xlsx", row.names = FALSE) # Write the data for the sensitivity analysis
 
 DataFiguresSensitivity$CarbonDebtAssumption[DataFiguresSensitivity$CarbonDebtAssumption == FALSE] <- 9999
 DataFiguresSensitivity <- melt(DataFiguresSensitivity, measure.vars = c("AdditionalCarbonAccountability", "AdditionalCarbonAccountabilityPerCapita", "ChangeComparedToMain"), variable.name = "Graph", value.name = "Change") # Merge the data for the sensitivity analysis
