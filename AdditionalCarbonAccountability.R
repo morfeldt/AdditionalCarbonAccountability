@@ -681,13 +681,13 @@ SensitivityAnalysisAllocationPrincipleOnlyCB <- ggplot() +
   scale_x_continuous(n.breaks = 6, limits = c(0,NA)) +
   facetted_pos_scales(x = list(Graph == factor("ChangeComparedToMain", levels = c("AdditionalCarbonAccountability", "AdditionalCarbonAccountabilityPerCapita", "ChangeComparedToMain"), 
                                                labels = c(expression(paste("Additional carbon accountability (Gt", CO[2],")")), expression(paste("Additional carbon accountability per capita (t", CO[2],")")), expression(paste("Change compared to main case (%)")))) ~ scale_x_continuous(breaks = -1, limits = c(0,NA)))) +
-  scale_fill_manual(values = c(scico(5, palette = "roma")[2], scico(4, palette = "roma")[1], scico(4, palette = "roma")[3:5]),
+  scale_fill_manual(values = c(scico(4, palette = "roma")[2:3], scico(4, palette = "roma")[1], scico(4, palette = "roma")[4:5]), # scico(5, palette = "roma"),#c(scico(5, palette = "roma")[2], scico(4, palette = "roma")[1], scico(4, palette = "roma")[3:5]),
                     labels = c("Capability\n(only for the carbon budget\n- based on annual GDP per\ncapita 2023-2070)", 
-                               "Main case:\nEqual cumulative emissions per capita", 
                                "Contraction and convergence\n(only for the carbon budget\n- reaching equal annual\nemissions per capita by 2040)", 
+                               "Main case:\nEqual cumulative emissions per capita", 
                                "Equal cumulative emissions per capita\n(only for the carbon budget\n- cumulative emissions over\nthe period 1990-2070)", 
                                "Grandfathering\n(only for the carbon budget\n- based on share in 2022 global\nemissions)")) +
-  scale_color_manual(values = c(scico(5, palette = "roma")[2], scico(4, palette = "roma")[3:5]),
+  scale_color_manual(values = c(scico(4, palette = "roma")[2:3], scico(4, palette = "roma")[4:5]), #c(scico(5, palette = "roma")[1:2],scico(5, palette = "roma")[4:5]),#c(scico(5, palette = "roma")[2], scico(4, palette = "roma")[3:5]),
                      guide = "none") + 
   guides(fill = guide_legend(nrow = 2)) +
   labs(x = NULL, y = NULL, fill = NULL) +
@@ -732,14 +732,14 @@ SensitivityAnalysisAllocationPrincipleOnlyEAP <- ggplot() +
   scale_x_continuous(n.breaks = 6, limits = c(0,NA)) +
   facetted_pos_scales(x = list(Graph == factor("ChangeComparedToMain", levels = c("AdditionalCarbonAccountability", "AdditionalCarbonAccountabilityPerCapita", "ChangeComparedToMain"), 
                                                labels = c(expression(paste("Additional carbon accountability (Gt", CO[2],")")), expression(paste("Additional carbon accountability per capita (t", CO[2],")")), expression(paste("Change compared to main case (%)")))) ~ scale_x_continuous(breaks = -1, limits = c(0,NA)))) +
-  scale_fill_manual(values = c(scico(5, palette = "roma")[2], scico(4, palette = "roma")[1], scico(4, palette = "roma")[3:5]),
+  scale_fill_manual(values = c(scico(4, palette = "roma")[2:3], scico(4, palette = "roma")[1], scico(4, palette = "roma")[4:5]), # scico(5, palette = "roma"),#c(scico(5, palette = "roma")[2], scico(4, palette = "roma")[1], scico(4, palette = "roma")[3:5]),
                     labels = c("Capability\n(only for the emission allowances pool\n- based on cumulative GDP over the\nperiod 2023-2070)", 
-                               "Main case:\nEqual cumulative emissions per capita", 
                                "Contraction and convergence\n(only for the emission allowances pool\n- based on cumulative population over the period\n2023-2070 and total excessive carbon claims)", 
+                               "Main case:\nEqual cumulative emissions per capita", 
                                "Equal cumulative emissions per capita\n(only for the emission allowances pool\n- based on cumulative population\nover the period 2023-2070)", 
                                "Grandfathering\n(only for the emission allowances pool\n- based on total excessive carbon\nclaims)")) +
-  scale_color_manual(values = c(scico(5, palette = "roma")[2], scico(4, palette = "roma")[3:5]),
-                     guide = "none") +
+  scale_color_manual(values = c(scico(4, palette = "roma")[2:3], scico(4, palette = "roma")[4:5]), #c(scico(5, palette = "roma")[1:2],scico(5, palette = "roma")[4:5]),#c(scico(5, palette = "roma")[2], scico(4, palette = "roma")[3:5]),
+                     guide = "none") + 
   guides(fill = guide_legend(nrow = 2)) +
   labs(x = NULL, y = NULL, fill = NULL) +
   theme_bw(base_size = 8) + theme(legend.position = "bottom",
