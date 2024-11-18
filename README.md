@@ -1,6 +1,6 @@
 # Additional Carbon Accountability
 
-This supplementary R script is part of the scientific manuscript by **Hahn el al. Estimating countries' additional carbon accountability for closing the mitigation gap based on past and future emissions**, submitted to *Nature Communications* for public sharing, reproduction and validation of the results we present in the manuscript.
+This supplementary R script is part of the scientific manuscript by **Hahn el al. [Estimating countries' additional carbon accountability for closing the mitigation gap based on past and future emissions](https://www.nature.com/articles/s41467-024-54039-x)**, published in *Nature Communications*, for public sharing, reproduction, and validation of the results we present in the manuscript.
 
 The script allows you to reproduce and follow each of the calculation steps in the manuscript to estimate this 'additional carbon accountability' for 37 countries based on the countries' carbon debt and future surplus carbon claims on a remaining global carbon budget to keep the global average temperature increase below 1.5°C with a 50% probability.
 
